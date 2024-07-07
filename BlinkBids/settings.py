@@ -175,3 +175,5 @@ DJOSER = {
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+FRONTEND_BASE_URL = "localhost:3000"

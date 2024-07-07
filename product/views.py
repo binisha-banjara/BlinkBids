@@ -187,8 +187,9 @@ def gensignature(order, data_to_sign):
 def pay_with_esewa(request):
     try:
         user = request.user
-        cart_items = CartItems.objects.filter(cart__user=user)
+        cart_items = CartItems.objects.filter(user=user)
         if not cart_items:
+           
             return Response("Your cart is empty", status=status.HTTP_400_BAD_REQUEST)
 
         order = Order.objects.create(user=user,payment_method = "esewa",is_paid= False)
