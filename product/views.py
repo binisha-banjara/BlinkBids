@@ -172,7 +172,7 @@ class CategoryDelete(DestroyAPIView):
 
 
 
-def gensignature(order, data_to_sign):
+def gensignature(data_to_sign):
     SECRET_KEY = "8gBm/:&EnhH.1/q"
     key = SECRET_KEY.encode("utf-8")
     message = data_to_sign.encode("utf-8")
@@ -182,7 +182,7 @@ def gensignature(order, data_to_sign):
 
     return signature
 
-
+import uuid
 @api_view(["POST"])
 def pay_with_esewa(request):
     try:
@@ -203,27 +203,30 @@ def pay_with_esewa(request):
             )
             cart_item.delete()
 
+        transaction_uuid = uuid.uuid4()
+        data_to_sign = f"total_amount={order.total_price},transaction_uuid={transaction_uuid},product_code=EPAYTEST"
+        signature = gensignature(data_to_sign)
         
-        data_to_sign = f"total_amount={order.total_price},transaction_uuid={order.id},product_code=EPAYTEST"
-        signature = gensignature(order, data_to_sign)
-        
+
         esewa_request = {
             "amount": str(order.total_price),
             "tax_amount": "0",
             "total_amount": str(order.total_price),
-            "transaction_uuid": str(order.id),
+            "transaction_uuid": str(transaction_uuid),
             "product_code": "EPAYTEST",
             "product_service_charge": "0",
             "product_delivery_charge": "0",
-            "success_url": f"{settings.FRONTEND_BASE_URL}/user/payment",
-            "failure_url": f"{settings.FRONTEND_BASE_URL}",
+            "success_url": "http://localhost:3000/user/payment/",
+            "failure_url": "https://localhost:3000/",
             "signed_field_names": "total_amount,transaction_uuid,product_code",
             "signature": str(signature),
         }
 
+      
         return Response(esewa_request, status=status.HTTP_201_CREATED)
 
     except Exception as e:
+       
         print(e)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
