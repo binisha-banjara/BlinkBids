@@ -203,8 +203,8 @@ def pay_with_esewa(request):
             )
             cart_item.delete()
 
-        transaction_uuid = uuid.uuid4()
-        data_to_sign = f"total_amount={order.total_price},transaction_uuid={transaction_uuid},product_code=EPAYTEST"
+        
+        data_to_sign = f"total_amount={order.total_price},transaction_uuid={order.pub_id},product_code=EPAYTEST"
         signature = gensignature(data_to_sign)
         
 
@@ -212,7 +212,7 @@ def pay_with_esewa(request):
             "amount": str(order.total_price),
             "tax_amount": "0",
             "total_amount": str(order.total_price),
-            "transaction_uuid": str(transaction_uuid),
+            "transaction_uuid": str(order.pub_id),
             "product_code": "EPAYTEST",
             "product_service_charge": "0",
             "product_delivery_charge": "0",
@@ -238,8 +238,8 @@ def verify_esewa_payment(request):
     decoded_data = json.loads(base64.b64decode(data["data"]).decode("utf-8"))
 
     order = Order.objects.get(pub_id=decoded_data["transaction_uuid"])
-    data_to_sign = f"transaction_code={decoded_data['transaction_code']},status={decoded_data['status']},total_amount={str(decoded_data['total_amount']).replace(',','')},transaction_uuid={decoded_data['transaction_uuid']},product_code=NP-ES-FATAFAT,signed_field_names=transaction_code,status,total_amount,transaction_uuid,product_code,signed_field_names"
-    order_signature = gensignature(order, data_to_sign)
+    data_to_sign = f"transaction_code={decoded_data['transaction_code']},status={decoded_data['status']},total_amount={str(decoded_data['total_amount']).replace(',','')},transaction_uuid={decoded_data['transaction_uuid']},product_code=EPAYTEST,signed_field_names=transaction_code,status,total_amount,transaction_uuid,product_code,signed_field_names"
+    order_signature = gensignature(data_to_sign)
 
     if decoded_data["signature"] == order_signature:
         order.is_paid = True
